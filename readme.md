@@ -26,7 +26,8 @@ Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain 
 
 ###### Known Working
 
-Please note that your situation may vary depending on your hardware and this only represents my comparison. Try the original code first!
+- Please note that your situation may vary depending on your hardware and this only represents my comparison. 
+- Try the original code first!
 
 
 | Cartridge Type | REV4 Status | Original MCL64 REV3 Status |
