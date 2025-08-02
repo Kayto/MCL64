@@ -10,7 +10,8 @@ Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain 
 
 ##### Compatibility Notes
 
-- Please note that your situation may vary depending on your hardware and this only represents my apples with apples comparison. Try the original code first as YMMV!
+- Please note that your situation may vary depending on your hardware and this only represents my apples with apples comparison.
+- Try the original code first as YMMV!
 
 
 | Cartridge Type | REV4 Status | Original MCL64 REV3 Status |
