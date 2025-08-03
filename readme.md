@@ -20,12 +20,12 @@ Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing d
 
 # MCL64 Kayto Revision Development
 
-See DEV folders for revisons under development and associated notes. This represents a work in progress area, pending merge into last revision.
+See DEV folders for revisions under development and associated notes. This represents a work in progress area, pending merge into last revision.
 
 ## Revision 5
 
 **Date:** August, 2025
-**Origial Code Modified by:** kayto@github.com
+**Original Code Modified by:** kayto@github.com
 **Base:** Revision 4 
 
 Revision 5 represents a work in progress snapshot of my development of the MCL64 codebase with the aim to gain better understanding of compatibility related to real C64 carts, such as EF3, Action Replay and Supersnapshot freezer cartridges. I am not there yet, but steadily improving seems like a result.
