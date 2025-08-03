@@ -25,12 +25,18 @@
 // Revision 3 12/10/2021
 // Made optimiations for acceleration and UART control
 //
-// Revision 4 07/30/2025 by kayto@github.com
-// ============================================================================
-// MCL64 - Teensy-based 6510 CPU replacement for Commodore 64 (No Acceleration)
-// ============================================================================
-// Major refactoring focused on hardware compatibility and EF3 cartridge support.
-// See revision_4_changes.md for detailed documentation of all changes.
+// Revision 4 08/03/2025 by Kayto@github.com
+// Refactored code to split out the following files:
+// - opcodes.cpp/h
+// - opcode_dispatch.cpp/h
+// - basic_rom.c/h
+// - kernal_rom.c/h
+// 
+// ========================================================================
+// Revision 5 WIP by kayto@github.com
+// focus on hardware compatibility -EF3 and freezer cartridge support.
+// See Revision 5 readme.md for detailed documentation of developing changes.
+// ========================================================================
 //
 //------------------------------------------------------------------------
 //
