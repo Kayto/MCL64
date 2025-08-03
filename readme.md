@@ -11,16 +11,24 @@ Boards:
 MCL64 - MOS 6510 emulator which runs on a Teensy 4.1 and can be used as a drop-in replacement in the Commodore 64
 
 # MCL64 Kayto Revisions
-
-See individual revision folders for detailed revison notes.
-
 ## Revision 4
-
-**Date:** July 30, 2025
-**Origial Code Modified by:** kayto@github.com
+**Date:** August 03, 2025
+**Original Code Modified by:** kayto@github.com
 **Base:** Revision 3 (12/10/2021)
 
-Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain better understanding of compatibility related to real C64 carts, such as EF3, Action Replay and Supersnapshot freezer cartridges. I am not there yet, but steadily improving seems like a result.
+Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing development. No code changes other than moving the large opcode list and ROM arrays into seperate files.
+
+# MCL64 Kayto Revision Development
+
+See DEV folders for revisons under development and associated notes. This represents a work in progress area, pending merge into last revision.
+
+## Revision 5
+
+**Date:** August, 2025
+**Origial Code Modified by:** kayto@github.com
+**Base:** Revision 4 
+
+Revision 5 represents a work in progress snapshot of my development of the MCL64 codebase with the aim to gain better understanding of compatibility related to real C64 carts, such as EF3, Action Replay and Supersnapshot freezer cartridges. I am not there yet, but steadily improving seems like a result.
 
 ##### Compatibility Notes
 

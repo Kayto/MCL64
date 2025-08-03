@@ -1,12 +1,12 @@
 For the original code and credit visit [https://github.com/MicroCoreLabs/Projects/tree/master](https://github.com/MicroCoreLabs/Projects/tree/master)
 
-# MCL64 Revision 4 Changes Documentation
+# MCL64 Revision 5 Changes Documentation
 
 **Date:** July 30, 2025
 **Original Code Modified by:** kayto@github.com
-**Base:** Revision 3 (12/10/2021)
+**Base:** Revision 4
 
-Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain better understanding of compatibility related to real C64 carts, specifically EF3, Action Replay and Supersnapshot freezer cartridges. I am not there yet, but steadily improving seems like a result.
+Revision 5 represents my refactoring of the MCL64 codebase with the aim to gain better understanding of compatibility related to real C64 carts, specifically EF3, Action Replay and Supersnapshot freezer cartridges. I am not there yet, but steadily improving seems like a result.
 
 ##### Compatibility Notes
 
@@ -38,7 +38,7 @@ Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain 
 * All things timings!
 * Is my board a bit flakey/inconsistent?
 
-## Major Changes from Revision 3 and general ramblings!
+## Major Changes from Revision 4 and general ramblings!
 
 ### 1\. ACCELERATION REMOVAL
 
@@ -52,18 +52,7 @@ Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain 
 * All memory access now goes through the real C64 hardware bus exclusively
 * Removed acceleration control commands and status reporting
 
-### 2\. CODE ORGANIZATION
-
-**Motivation:** The monolithic code structure was becoming difficult to maintain and debug with my ageing brain. Separating opcodes helped readability.
-
-**Changes Made:**
-
-* Separated all 6502/6510 opcodes into `opcodes.h` header file
-* Created `opcode_dispatch.h` for the instruction dispatch table
-* Reorganized code structure and commented.
-
-
-### 3\. COMPLETE 6510 PORT REGISTER IMPLEMENTATION
+### 2\. COMPLETE 6510 PORT REGISTER IMPLEMENTATION
 
 **Motivation:** I assume that Cartridges require complete and accurate 6510 port register behavior. The original Revision 3 code handles this but I entered a rabbit hole of coding, to try and ensure this was accurate.
 
@@ -96,7 +85,7 @@ Revision 4 represents my refactoring of the MCL64 codebase with the aim to gain 
 * maintaining port state more explicitly through a port value.
 * data direction register - not really, but initialisation assumes always as an output.
 
-### 4\. ENHANCED RESET SEQUENCE
+### 3\. ENHANCED RESET SEQUENCE
 
 **Motivation:** I must admit this was also a rabbit hole that I am not sure I have emerged from. In an attempt to debug why physical hardware resets were failing to boot cartridge ROMS, I ended up fiddling with the revision 3 reset code to make it "cycle exact". I am not sure part of my minor tweak to Phase 3 adds anything really needed over the original. So I am really stretching the term "enhanced".
 
