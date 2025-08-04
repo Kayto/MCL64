@@ -43,7 +43,7 @@ Revision 5 represents a work in progress snapshot of my development of the MCL64
 | Diagnostic 4in1 Multi Cart | Works on boot, physical reset fails (1) | Works on boot, physical reset fails (1) |
 | Diagnostic Cartridge | Working (2) | Working |
 | Dead Test Cart | Not working (8 flashes) | Not working (8 flashes) |
-| EF3 KERNAL Replacement | Intermittent | Intermittent (better?) |
+| EF3 KERNAL Replacement | Working (2) | Working (2) |
 | EF3 Freezer | Working RR,SS,AR | RR, AR Working.   **SS Not Working** |
 | Standard Cartridges (SimonsBASIC) | Working | Working |
 | Easyflash Cartridge | Working | Working |
