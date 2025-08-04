@@ -38,6 +38,8 @@
 // - opcode_dispatch.cpp/h
 // - basic_rom.c/h
 // - kernal_rom.c/h
+// - addressing_modes.cpp/h
+// - hardware_config.cpp/h
 // 
 //------------------------------------------------------------------------
 //
@@ -68,76 +70,25 @@
 #include "kernal_rom.h"
 #include "opcodes.h"
 #include "opcode_dispatch.h"
+#include "addressing_modes.h"
+#include "hardware_config.h"
 
-// Teensy 4.1 pin assignments
-//
-#define PIN_CLK0            24
-#define PIN_READY_n         26
-#define PIN_IRQ             25
-#define PIN_NMI             41
-#define PIN_RESET           40
-#define PIN_RDWR_n          12
-#define PIN_P0              22
-#define PIN_P1              13
-#define PIN_P2              39
-                    
-#define PIN_ADDR0           27 
-#define PIN_ADDR1           38 
-#define PIN_ADDR2           28 
-#define PIN_ADDR3           37 
-#define PIN_ADDR4           29 
-#define PIN_ADDR5           36 
-#define PIN_ADDR6           30 
-#define PIN_ADDR7           35         
-#define PIN_ADDR8           31 
-#define PIN_ADDR9           34 
-#define PIN_ADDR10          32 
-#define PIN_ADDR11          33 
-#define PIN_ADDR12          1  
-#define PIN_ADDR13          0  
-#define PIN_ADDR14          2  
-#define PIN_ADDR15          23 
-        
-#define PIN_DATAIN0         14 
-#define PIN_DATAIN1         15 
-#define PIN_DATAIN2         16 
-#define PIN_DATAIN3         17 
-#define PIN_DATAIN4         18 
-#define PIN_DATAIN5         19 
-#define PIN_DATAIN6         20 
-#define PIN_DATAIN7         21 
-        
-#define PIN_DATAOUT0        11 
-#define PIN_DATAOUT1        10 
-#define PIN_DATAOUT2        9 
-#define PIN_DATAOUT3        8 
-#define PIN_DATAOUT4        7 
-#define PIN_DATAOUT5        6 
-#define PIN_DATAOUT6        5 
-#define PIN_DATAOUT7        4 
-#define PIN_DATAOUT_OE_n    3 
-
-
+// Memory page and banking macros 
 #define Page_128_159  ( (current_address >= 0x8000) && (current_address <= 0x9FFF) ) ? 0x1 : 0x0 
 #define Page_160_191  ( (current_address >= 0xA000) && (current_address <= 0xBFFF) ) ? 0x1 : 0x0 
 #define Page_224_255  ( (current_address >= 0xE000) && (current_address <= 0xFFFF) ) ? 0x1 : 0x0 
 
 #define bank_mode  ( 0x18 | (current_p&0x7)  )
 
-
 // 6502 stack always in Page 1
-//
 #define register_sp_fixed  (0x0100 | register_sp)
 
-
-// This eliminates most of the superflous fetches and writes of the cycle-accurate 6502
-//
+// This eliminates most of the superfluous fetches and writes of the cycle-accurate 6502
 #define SPEEDUP 0
 
 
-// CPU register for direct reads of the GPIOs
-//
-uint8_t   current_p=0x7; 
+// CPU register for direct reads of the GPIOs 
+uint8_t   current_p=0x7;        
 uint8_t   register_flags=0x34; 
 uint8_t   next_instruction;
 uint8_t   internal_memory_range=0;
@@ -167,66 +118,16 @@ extern const uint8_t KERNAL_ROM[0x2000];
 
 int       incomingByte;   
 
-    
-// ------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------
-
 // Setup Teensy 4.1 IO's
 //
 void setup() {
-  
-  pinMode(PIN_CLK0,        INPUT);  
-  pinMode(PIN_RESET,       INPUT);  
-  pinMode(PIN_READY_n,     INPUT);  
-  pinMode(PIN_IRQ,         INPUT);  
-  pinMode(PIN_NMI,         INPUT);  
-  pinMode(PIN_RDWR_n,      OUTPUT); 
-  pinMode(PIN_P0,          OUTPUT); 
-  pinMode(PIN_P1,          OUTPUT); 
-  pinMode(PIN_P2,          OUTPUT); 
-  
-  pinMode(PIN_ADDR0,       OUTPUT); 
-  pinMode(PIN_ADDR1,       OUTPUT); 
-  pinMode(PIN_ADDR2,       OUTPUT); 
-  pinMode(PIN_ADDR3,       OUTPUT); 
-  pinMode(PIN_ADDR4,       OUTPUT); 
-  pinMode(PIN_ADDR5,       OUTPUT); 
-  pinMode(PIN_ADDR6,       OUTPUT); 
-  pinMode(PIN_ADDR7,       OUTPUT);
-  pinMode(PIN_ADDR8,       OUTPUT); 
-  pinMode(PIN_ADDR9,       OUTPUT); 
-  pinMode(PIN_ADDR10,      OUTPUT); 
-  pinMode(PIN_ADDR11,      OUTPUT); 
-  pinMode(PIN_ADDR12,      OUTPUT); 
-  pinMode(PIN_ADDR13,      OUTPUT); 
-  pinMode(PIN_ADDR14,      OUTPUT); 
-  pinMode(PIN_ADDR15,      OUTPUT);  
-  
-  pinMode(PIN_DATAIN0,     INPUT); 
-  pinMode(PIN_DATAIN1,     INPUT); 
-  pinMode(PIN_DATAIN2,     INPUT); 
-  pinMode(PIN_DATAIN3,     INPUT); 
-  pinMode(PIN_DATAIN4,     INPUT); 
-  pinMode(PIN_DATAIN5,     INPUT); 
-  pinMode(PIN_DATAIN6,     INPUT); 
-  pinMode(PIN_DATAIN7,     INPUT);
-    
-  pinMode(PIN_DATAOUT0,    OUTPUT); 
-  pinMode(PIN_DATAOUT1,    OUTPUT); 
-  pinMode(PIN_DATAOUT2,    OUTPUT); 
-  pinMode(PIN_DATAOUT3,    OUTPUT); 
-  pinMode(PIN_DATAOUT4,    OUTPUT); 
-  pinMode(PIN_DATAOUT5,    OUTPUT); 
-  pinMode(PIN_DATAOUT6,    OUTPUT); 
-  pinMode(PIN_DATAOUT7,    OUTPUT);
-  pinMode(PIN_DATAOUT_OE_n,  OUTPUT); 
+  setup_teensy_pins();
 
   digitalWriteFast(PIN_P0, 0x1 ); 
   digitalWriteFast(PIN_P1, 0x1 ); 
   digitalWriteFast(PIN_P2, 0x1 ); 
 
-  Serial.begin(9600);
-
+  Serial.begin(9600);  
 }
 
 
@@ -531,205 +432,6 @@ void Begin_Fetch_Next_Opcode()  {
     start_read(register_pc);
     return;
 }
-
-
-// -------------------------------------------------
-// Addressing Modes
-// -------------------------------------------------
-uint8_t Fetch_Immediate()  {
-    register_pc++;
-    ea_data = read_byte(register_pc);
-    return ea_data;
-}
-
-uint8_t Fetch_ZeroPage()  { 
-    effective_address = Fetch_Immediate(); 
-    ea_data = read_byte(effective_address);
-    return ea_data;
-}
-
-uint8_t Fetch_ZeroPage_X()  {   
-    uint16_t bal;
-    bal = Fetch_Immediate();
-    if (SPEEDUP==0) read_byte(register_pc+1); 
-    effective_address = (0x00FF & (bal + register_x));
-    ea_data = read_byte(effective_address);
-    return ea_data;
-}
-
-uint8_t Fetch_ZeroPage_Y()  {   
-    uint16_t bal;
-    bal = Fetch_Immediate();
-    if (SPEEDUP==0) read_byte(register_pc+1); 
-    effective_address = (0x00FF & (bal + register_y)); 
-    ea_data = read_byte(effective_address);
-    return ea_data;
-}
-
-uint16_t Calculate_Absolute()  { 
-    uint16_t adl, adh;
-
-    adl = Fetch_Immediate();
-    adh = Fetch_Immediate()<<8;
-    effective_address = adl + adh;  
-    return effective_address;
-}
-
-uint8_t Fetch_Absolute()  { 
-    uint16_t adl, adh;
-
-    adl = Fetch_Immediate();
-    adh = Fetch_Immediate()<<8;
-    effective_address = adl + adh;  
-    ea_data = read_byte(effective_address);
-    return ea_data;
-}
-
-uint8_t Fetch_Absolute_X(uint8_t page_cross_check)  {
-    uint16_t bal, bah;
-    
-    bal = Fetch_Immediate();
-    bah = Fetch_Immediate()<<8;
-    effective_address = bah + bal + register_x;
-    ea_data = read_byte(effective_address );
-    
-    if (  (SPEEDUP==0) && page_cross_check==1 && (  (0xFF00&effective_address) != (0xFF00&bah) ) ) {  
-        ea_data = read_byte(effective_address ); 
-    }
-    return ea_data;
-}
-
-uint8_t Fetch_Absolute_Y(uint8_t page_cross_check)  {
-    uint16_t bal, bah;
-    
-    bal = Fetch_Immediate();
-    bah = Fetch_Immediate()<<8;
-    effective_address = bah + bal + register_y;
-    ea_data = read_byte(effective_address );
-    
-    if ( (SPEEDUP==0)  && page_cross_check==1 && (  (0xFF00&effective_address) != (0xFF00&bah) ) ) {  
-        ea_data = read_byte(effective_address ); 
-    } 
-    return ea_data;
-}
-
-uint8_t Fetch_Indexed_Indirect_X()  { 
-    uint16_t bal;
-    uint16_t adl, adh;
-    
-    bal = Fetch_Immediate() + register_x;
-    read_byte(bal);
-    adl = read_byte(0xFF&bal);
-    adh = read_byte(0xFF&(bal+1)) << 8;
-    effective_address = adh + adl ;
-    ea_data = read_byte(effective_address);
-    return ea_data;
-}
-
-uint8_t Fetch_Indexed_Indirect_Y(uint8_t page_cross_check)  {
-    uint16_t ial, bah, bal;
-    
-    ial = Fetch_Immediate();
-    bal = read_byte(0xFF&ial);
-    bah = read_byte(0xFF&(ial+1)) << 8;
-    
-    effective_address = bah + bal + register_y;
-    ea_data = read_byte(effective_address);
-    
-    if ( (SPEEDUP==0) && page_cross_check==1 && ((0xFF00&effective_address) != (0xFF00&bah)) ) {  
-        ea_data = read_byte(effective_address); 
-    }
-    return ea_data;
-}
-
-
-void Write_ZeroPage(uint8_t local_data)  {
-    effective_address = Fetch_Immediate();
-    write_byte(effective_address , local_data);
-    return;
-}
-
-void Write_Absolute(uint8_t local_data)  {
-    effective_address = Fetch_Immediate();
-    effective_address = (Fetch_Immediate() << 8) + effective_address;
-    write_byte(effective_address , local_data );
-    return;
-}
-
-void Write_ZeroPage_X(uint8_t local_data)  {
-    effective_address = Fetch_Immediate();
-    if (SPEEDUP==0) read_byte(effective_address);
-    write_byte( (0x00FF&(effective_address + register_x)) , local_data );
-    return;
-}
-
-void Write_ZeroPage_Y(uint8_t local_data)  {
-    effective_address = Fetch_Immediate();
-    if (SPEEDUP==0) read_byte(effective_address);
-    write_byte( (0x00FF&(effective_address + register_y)) , local_data );
-    return;
-}
-
-void Write_Absolute_X(uint8_t local_data)  {
-    uint16_t bal,bah;
-
-    bal = Fetch_Immediate();
-    bah = Fetch_Immediate()<<8;
-    effective_address = bal + bah + register_x; 
-    if (SPEEDUP==0) read_byte(effective_address);
-    write_byte(effective_address , local_data );  
-    return;
-}
-
-void Write_Absolute_Y(uint8_t local_data)  {
-    uint16_t bal,bah;
-
-    bal = Fetch_Immediate();
-    bah = Fetch_Immediate()<<8;
-    effective_address = bal + bah + register_y;
-    read_byte(effective_address);
-
-    if (SPEEDUP==0) {
-        if ( (0xFF00&effective_address) != (0xFF00&bah) ) { 
-        read_byte(effective_address);
-        }
-    }
-    write_byte(effective_address , local_data );  
-    return;
-}
-
-void Write_Indexed_Indirect_X(uint8_t local_data)  {
-    uint16_t bal;
-    uint16_t adl, adh;
-
-    bal = Fetch_Immediate();
-    read_byte(bal);
-    adl = read_byte(0xFF&(bal+register_x));
-    adh = read_byte(0xFF&(bal+register_x+1)) << 8;
-    effective_address = adh + adl;
-    write_byte(effective_address , local_data );
-    return;
-}
-
-void Write_Indexed_Indirect_Y(uint8_t local_data)  {  
-    uint16_t ial;
-    uint16_t bal, bah;
-
-    ial = Fetch_Immediate();
-    bal = read_byte(ial);
-    bah = read_byte(ial+1)<<8;
-    effective_address = bah + bal + register_y;
-    if (SPEEDUP==0) read_byte(effective_address);
-    write_byte(effective_address , local_data );
-    return;
-}
-
-void Double_WriteBack(uint8_t local_data)  {  
-    if (SPEEDUP==0)  write_byte(effective_address , ea_data);
-    write_byte(effective_address , local_data);
-    return;
-}
-
 
 // -------------------------------------------------
 // Reset sequence for the 6502

@@ -16,7 +16,7 @@ MCL64 - MOS 6510 emulator which runs on a Teensy 4.1 and can be used as a drop-i
 **Original Code Modified by:** kayto@github.com
 **Base:** Revision 3 (12/10/2021)
 
-Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing development. No code changes other than moving the large opcode list and ROM arrays into seperate files.
+Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing development. No code changes other than moving the large opcodes, ROMs, addressing modes, and hardware configuration sections into seperate files.
 
 # MCL64 Kayto Revision Development
 

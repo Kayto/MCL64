@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <Arduino.h>
 
+// SPEEDUP macro
+#define SPEEDUP 0
+
 // External CPU state variables
 extern uint8_t register_a, register_x, register_y, register_sp, register_flags, current_p;
 extern uint16_t register_pc, current_address, effective_address;
@@ -37,9 +40,6 @@ extern void start_read(uint32_t local_address);
 extern uint8_t finish_read_byte();
 extern uint16_t Sign_Extend16(uint16_t reg_data);
 extern uint16_t Calculate_Absolute();
-
-// SPEEDUP macro
-#define SPEEDUP 0
 
 // ---- missing helpers declared here ----
 extern uint8_t Fetch_ZeroPage();
