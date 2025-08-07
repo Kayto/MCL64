@@ -12,27 +12,33 @@ MCL64 - MOS 6510 emulator which runs on a Teensy 4.1 and can be used as a drop-i
 
 # MCL64 Kayto Revisions
 ## Revision 4
-**Date:** August 03, 2025
+**Date:** August 04, 2025  
+**Updated:** August 07, 2025
 **Original Code Modified by:** kayto@github.com
 **Base:** Revision 3 (12/10/2021)
 
-Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing development. No code changes other than moving the large opcodes, ROMs, addressing modes, and hardware configuration sections into seperate files.
+Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing development and add compile-time acceleration control.
 
-# MCL64 Kayto Revision Development
+```
+// Revision 4 08/03/2025 by Kayto@github.com
+// Refactored code to split out the following files:
+// - opcodes.cpp/h
+// - opcode_dispatch.cpp/h
+// - basic_rom.c/h
+// - kernal_rom.c/h
+// - addressing_modes.cpp/h
+// - hardware_config.cpp/h
+// 
+// Updated 08/07/2025 Added compile-time acceleration control:
+// - ENABLE_ACCELERATION define allows complete removal of acceleration code
+// - All acceleration-related code wrapped in #if ENABLE_ACCELERATION blocks
+// - When set to 0, forces cycle-accurate mode and removes internal RAM array
+// - resulting in improved cartridge compatibility
+// 
+```
+ Compatibility related to real C64 carts, specifically EF3, Action Replay and Supersnapshot freezer cartridges is improved by compile time removal of acceleration.
 
-See DEV folders for revisions under development and associated notes. This represents a work in progress area, pending merge into last revision.
-
-## Revision 5
-
-**Date:** August, 2025
-**Original Code Modified by:** kayto@github.com
-**Base:** Revision 4 
-
-Revision 5 represents a work in progress snapshot of my development of the MCL64 codebase with the aim to gain better understanding of compatibility related to real C64 carts, such as EF3, Action Replay and Supersnapshot freezer cartridges. I am not there yet, but steadily improving seems like a result.
-
-##### Compatibility Notes
-
-###### Known Working
+### Compatibility Notes
 
 - Please note that your situation may vary depending on your hardware and this only represents my comparison. 
 - Try the original code first!
@@ -41,22 +47,18 @@ Revision 5 represents a work in progress snapshot of my development of the MCL64
 | Cartridge Type | REV4 Status | Original MCL64 REV3 Status |
 |----------------|-------------|-------------|
 | Diagnostic 4in1 Multi Cart | Works on boot, physical reset fails (1) | Works on boot, physical reset fails (1) |
-| Diagnostic Cartridge | Intermittent (2) | Working |
+| Diagnostic Cartridge | Working (2) | Working |
 | Dead Test Cart | Not working (8 flashes) | Not working (8 flashes) |
-| EF3 KERNAL Replacement | Intermittent | Intermittent (better?) |
-| EF3 Freezer | Working RR,SS,AR | RR, AR Working.   SS Not Working |
+| EF3 KERNAL Replacement | Working (2) | Working (2) |
+| EF3 Freezer | Working RR,SS,AR | RR, AR Working.   **SS Not Working** |
 | Standard Cartridges (SimonsBASIC) | Working | Working |
 | Easyflash Cartridge | Working | Working |
-| Super Snapshot 5 Cartridge (SS) | Working | Not Working |
+| Super Snapshot 5 Cartridge (SS) | Working | **Not Working** |
 | Magic Desk Cartridge | Working | Working |
-| Action Replay v6.0 (AR) | Working | Not working |
-| EF3 Turrican | Working | Working (minor sound corruption)
-| EF3 Prince of Persia | Not Working | Not Working |
+| Action Replay v6.0 (AR) | Working | **Not working** |
+| EF3 Turrican | Working | Working **(minor sound/graphic corruption)** |
+| EF3 Prince of Persia | **Not Working** | **Not Working** |
 
 
 * (1) this may be normal behaviour on real hardware.
-* (2) TBC - is my board a bit flakey!
-
-###### Potential Issues
-
-* All things timings!
+* (2) TBC - possibly intermittent - is my board a bit flakey!
