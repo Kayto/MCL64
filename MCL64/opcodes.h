@@ -7,12 +7,24 @@
 // SPEEDUP macro
 #define SPEEDUP 0
 
+// Acceleration configuration (must match main file)
+#ifndef ENABLE_ACCELERATION
+#define ENABLE_ACCELERATION 0
+#endif
+
 // External CPU state variables
 extern uint8_t register_a, register_x, register_y, register_sp, register_flags, current_p;
 extern uint16_t register_pc, current_address, effective_address;
+#if ENABLE_ACCELERATION
 extern uint8_t internal_RAM[65536];
+#endif
 extern uint8_t next_instruction, ea_data, global_temp, last_access_internal_RAM;
+#if ENABLE_ACCELERATION
 extern uint8_t assert_sync, mode;
+#else
+extern uint8_t assert_sync;
+#define mode 0
+#endif
 
 // 6502 Flags
 #define flag_n    ((register_flags & 0x80) >> 7)    // register_flags[7]

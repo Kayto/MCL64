@@ -3,6 +3,11 @@
 
 #include <stdint.h>
 
+// Acceleration configuration (must match main file)
+#ifndef ENABLE_ACCELERATION
+#define ENABLE_ACCELERATION 0
+#endif
+
 // Define SPEEDUP (matching main file)
 #define SPEEDUP 0
 

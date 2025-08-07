@@ -72,17 +72,18 @@
 //------------------------------------------------------------------------
 
 #include <stdint.h>
+
+// --------------------------------------------------------------------------------------------------
+// Acceleration Configuration - Set to 0 to remove all acceleration code
+// --------------------------------------------------------------------------------------------------
+#define ENABLE_ACCELERATION 0    // 1 = Include acceleration features, 0 = Original cycle-accurate only
+
 #include "basic_rom.h"
 #include "kernal_rom.h"
 #include "opcodes.h"
 #include "opcode_dispatch.h"
 #include "addressing_modes.h"
 #include "hardware_config.h"
-
-// --------------------------------------------------------------------------------------------------
-// Acceleration Configuration - Set to 0 to remove all acceleration code
-// --------------------------------------------------------------------------------------------------
-#define ENABLE_ACCELERATION 0    // 1 = Include acceleration features, 0 = Original cycle-accurate only
 
 // Memory page and banking macros 
 #define Page_128_159  ( (current_address >= 0x8000) && (current_address <= 0x9FFF) ) ? 0x1 : 0x0 
