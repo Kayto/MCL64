@@ -41,6 +41,12 @@
 // - addressing_modes.cpp/h
 // - hardware_config.cpp/h
 // 
+// Updated 08/07/2025 Added compile-time acceleration control:
+// - ENABLE_ACCELERATION define allows complete removal of acceleration code
+// - All acceleration-related code wrapped in #if ENABLE_ACCELERATION blocks
+// - When set to 0, forces cycle-accurate mode and removes internal RAM array
+// - resulting in improved cartridge compatibility
+// 
 //------------------------------------------------------------------------
 //
 // Copyright (c) 2021 Ted Fried
@@ -72,6 +78,11 @@
 #include "opcode_dispatch.h"
 #include "addressing_modes.h"
 #include "hardware_config.h"
+
+// --------------------------------------------------------------------------------------------------
+// Acceleration Configuration - Set to 0 to remove all acceleration code
+// --------------------------------------------------------------------------------------------------
+#define ENABLE_ACCELERATION 0    // 1 = Include acceleration features, 0 = Original cycle-accurate only
 
 // Memory page and banking macros 
 #define Page_128_159  ( (current_address >= 0x8000) && (current_address <= 0x9FFF) ) ? 0x1 : 0x0 
@@ -106,13 +117,19 @@ uint8_t   assert_sync=0;
 uint8_t   global_temp=0;
 uint8_t   last_access_internal_RAM=0;
 uint8_t   ea_data=0;
+#if ENABLE_ACCELERATION
 uint8_t   mode=0;
+#else
+#define   mode 0     // Force mode 0 at compile time
+#endif
 
 uint16_t  register_pc=0;
 uint16_t  current_address=0;
 uint16_t  effective_address=0;
 
+#if ENABLE_ACCELERATION
 uint8_t   internal_RAM[65536];
+#endif
 extern const uint8_t BASIC_ROM[0x2000];
 extern const uint8_t KERNAL_ROM[0x2000];
 
@@ -149,7 +166,7 @@ void setup() {
 // ----------------------------------------------------------
 inline uint8_t internal_address_check(uint16_t local_address) {
 
-
+#if ENABLE_ACCELERATION
   if ( (local_address > 0x0001 ) && (local_address <= 0x03FF) ) return mode;            //   Zero-Page up to video 
   if ( (local_address >= 0x0400) && (local_address <= 0x07FF) && mode>1) return 0x1;    //   C64 Video Memory 
   if ( (local_address >= 0x0800) && (local_address <= 0x7FFF) ) return mode;            //   C64 RAM 
@@ -162,6 +179,10 @@ inline uint8_t internal_address_check(uint16_t local_address) {
   if ( (local_address >= 0xFF80) && (local_address <= 0xFFFF) ) return mode;            //   C64 KERNAL ROM 
  
   return 0x0;
+#else
+  // No acceleration - always return 0x0 (external memory only)
+  return 0x0;
+#endif
 } 
 
 
@@ -250,6 +271,7 @@ inline void start_read(uint32_t local_address) {
   
   current_address = local_address; 
    
+#if ENABLE_ACCELERATION
     if (internal_address_check(current_address)>0x1)  { 
       //last_access_internal_RAM=1;
     }
@@ -262,6 +284,11 @@ inline void start_read(uint32_t local_address) {
         digitalWriteFast(PIN_RDWR_n,  0x1);
         send_address(local_address);
      }
+#else
+    // Original cycle-accurate only
+    digitalWriteFast(PIN_RDWR_n,  0x1);
+    send_address(local_address);
+#endif
     return;
 }
 
@@ -272,6 +299,7 @@ inline void start_read(uint32_t local_address) {
 // -------------------------------------------------
 inline uint8_t fetch_byte_from_bank() {
                      
+#if ENABLE_ACCELERATION
     if (Page_160_191==0x1)  {  if   ((bank_mode&0x3)==0x3)                                  {  return BASIC_ROM[current_address & 0x1FFF];        }
                                else                                                         {  return internal_RAM[current_address];              }  }
     
@@ -279,6 +307,14 @@ inline uint8_t fetch_byte_from_bank() {
                                else                                                         {  return internal_RAM[current_address];              }  }
     
      return internal_RAM[current_address];
+#else
+    // When acceleration disabled, use ROM directly for banking
+    if (Page_160_191==0x1)  {  if   ((bank_mode&0x3)==0x3)                                  {  return BASIC_ROM[current_address & 0x1FFF];        }  }
+    if (Page_224_255==0x1)  {  if ( (bank_mode&0x2)==0x2)                                   {  return KERNAL_ROM[current_address & 0x1FFF];       }  }
+    
+    // Should not reach here in non-acceleration mode, but return 0 as fallback
+    return 0;
+#endif
 }
   
 
@@ -287,6 +323,7 @@ inline uint8_t fetch_byte_from_bank() {
 // -------------------------------------------------
 inline uint8_t finish_read_byte() {  
   
+#if ENABLE_ACCELERATION
   if (internal_address_check(current_address)>0x1)  {
     last_access_internal_RAM=1;
     return fetch_byte_from_bank();   
@@ -301,6 +338,13 @@ inline uint8_t finish_read_byte() {
        if (internal_address_check(current_address)>0x0)  {  return fetch_byte_from_bank();   }
        else                                              {  if (current_address==0x1) return (current_p|0x10); else return direct_datain;                  }
     }
+#else
+  // Original cycle-accurate only
+  do {  wait_for_CLK_rising_edge();  }  while (direct_ready_n == 0x1);  // Delay a clock cycle until ready is active 
+  
+  if (current_address==0x1) return (current_p|0x10); 
+  else return direct_datain;
+#endif
 }
   
 
@@ -312,6 +356,7 @@ inline uint8_t read_byte(uint16_t local_address) {
   
   current_address = local_address;
   
+#if ENABLE_ACCELERATION
   if (internal_address_check(local_address)>0x1)  {
     last_access_internal_RAM=1;
         return fetch_byte_from_bank(); 
@@ -327,6 +372,14 @@ inline uint8_t read_byte(uint16_t local_address) {
        if (internal_address_check(current_address)>0x0)  {  return fetch_byte_from_bank();  }
        else                                              {  if (current_address==0x1) return (current_p|0x10); else return direct_datain;                  }
      }
+#else
+  // Original cycle-accurate only
+  start_read(local_address);
+  do {  wait_for_CLK_rising_edge();  }  while (direct_ready_n == 0x1);  // Delay a clock cycle until ready is active 
+  
+  if (current_address==0x1) return (current_p|0x10); 
+  else return direct_datain;
+#endif
 } 
 
 
@@ -335,6 +388,7 @@ inline uint8_t read_byte(uint16_t local_address) {
 // -------------------------------------------------
 inline void write_byte(uint16_t local_address , uint8_t local_write_data) {
   
+#if ENABLE_ACCELERATION
   // Internal RAM
   //
     if (internal_address_check(local_address)>0x2)  {
@@ -379,7 +433,36 @@ inline void write_byte(uint16_t local_address , uint8_t local_write_data) {
        
        wait_for_CLK_rising_edge();
        digitalWriteFast(PIN_DATAOUT_OE_n,  0x1 );   
-  }            
+  }
+#else
+  // Original cycle-accurate only - always external write
+  digitalWriteFast(PIN_RDWR_n,  0x0);
+  send_address(local_address);
+
+  // Drive the data bus pins from the Teensy to the bus driver which is inactive
+  digitalWriteFast(PIN_DATAOUT0,  (local_write_data & 0x01)    );
+  digitalWriteFast(PIN_DATAOUT1,  (local_write_data & 0x02)>>1 ); 
+  digitalWriteFast(PIN_DATAOUT2,  (local_write_data & 0x04)>>2 ); 
+  digitalWriteFast(PIN_DATAOUT3,  (local_write_data & 0x08)>>3 ); 
+  digitalWriteFast(PIN_DATAOUT4,  (local_write_data & 0x10)>>4 ); 
+  digitalWriteFast(PIN_DATAOUT5,  (local_write_data & 0x20)>>5 ); 
+  digitalWriteFast(PIN_DATAOUT6,  (local_write_data & 0x40)>>6 ); 
+  digitalWriteFast(PIN_DATAOUT7,  (local_write_data & 0x80)>>7 ); 
+
+  if (local_address==0x1) {  
+    current_p = local_write_data;
+    digitalWriteFast(PIN_P0,  (local_write_data & 0x01) ); 
+    digitalWriteFast(PIN_P1,  (local_write_data & 0x02) >> 1 ); 
+    digitalWriteFast(PIN_P2,  (local_write_data & 0x04) >> 2 ); 
+  }
+
+  // During the second CLK phase, enable the data bus output drivers
+  wait_for_CLK_falling_edge();
+  digitalWriteFast(PIN_DATAOUT_OE_n,  0x0 ); 
+  
+  wait_for_CLK_rising_edge();
+  digitalWriteFast(PIN_DATAOUT_OE_n,  0x1 );   
+#endif            
    return;
 }
 
@@ -551,7 +634,7 @@ void irq_handler(uint8_t opcode_is_brk) {
       
       if (direct_reset==1) reset_sequence();
       
-      
+#if ENABLE_ACCELERATION      
       // Set Acceleration using UART receive characters
       // Send the numbers 0,1,2,3 from the host through a serial terminal to the MCL65+
       // for acceleration modes 0,1,2,3
@@ -568,6 +651,7 @@ void irq_handler(uint8_t opcode_is_brk) {
           }
         }
       }    
+#endif
     
       // Poll for NMI and IRQ
       //
