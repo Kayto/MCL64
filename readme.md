@@ -48,7 +48,7 @@ Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing d
 |----------------|-------------|-------------|
 | Diagnostic 4in1 Multi Cart | Works on boot, boot after physical reset fails (1) | Works on boot, boot after physical reset fails (1) |
 | Diagnostic Cartridge | Working (2) | Working |
-| Dead Test Cart | Working (2) | Not working (8 flashes) |
+| Dead Test Cart | Working (2) | **Not working (8 flashes)** |
 | EF3 KERNAL Replacement | Working (2) | Working (2) |
 | EF3 Freezer | Working RR,SS,AR | RR, AR Working.   **SS Not Working** |
 | Standard Cartridges (SimonsBASIC) | Working | Working |
