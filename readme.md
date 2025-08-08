@@ -58,7 +58,9 @@ Revision 4 represents my refactoring of the MCL64 codebase to simplify ongoing d
 | Action Replay v6.0 (AR) | Working | **Not working** |
 | EF3 Turrican | Working | Working **(minor sound/graphic corruption)** |
 | EF3 Prince of Persia | **Not Working** | **Not Working** |
+| EF3 Super Mario 64 | **Not Working (3)** | **Not Working (3)** |
 
 
 * (1) this may be normal behaviour on real hardware.
 * (2) TBC - possibly intermittent - is my board a bit flakey!
+* (3) Screen corruption shake - VSP bug?
